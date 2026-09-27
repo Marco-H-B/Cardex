@@ -1,6 +1,7 @@
 # Documentación y Especificaciones Locales
 spec/
 wiki/
+.vscode/
 
 # Orquestación de Agentes e Instrucciones de Entorno
 AGENTS.md
