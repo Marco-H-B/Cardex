@@ -71,7 +71,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import com.cardex.app.presentation.common.CardImage
 import com.cardex.app.core.theme.CarbonBorder
 import com.cardex.app.core.theme.CommonBlue
 import com.cardex.app.core.theme.DamagedGlacier
@@ -258,8 +258,8 @@ fun BinderScreen(
                                                         .clip(RoundedCornerShape(6.dp))
                                                         .background(OledBlack)
                                                 ) {
-                                                    AsyncImage(
-                                                        model = File(card.frontThumbnailPath),
+                                                    CardImage(
+                                                        imagePath = card.frontThumbnailPath,
                                                         contentDescription = null,
                                                         contentScale = ContentScale.Crop,
                                                         modifier = Modifier.fillMaxSize()
@@ -547,8 +547,8 @@ private fun BinderPocketSlot(
     ) {
         if (card != null) {
             // Miniatura WebP capturada por el sensor óptico
-            AsyncImage(
-                model = File(card.frontThumbnailPath),
+            CardImage(
+                imagePath = card.frontThumbnailPath,
                 contentDescription = card.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

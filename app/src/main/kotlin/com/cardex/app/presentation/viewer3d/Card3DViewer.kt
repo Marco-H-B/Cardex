@@ -52,7 +52,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import com.cardex.app.presentation.common.CardImage
 import com.cardex.app.core.theme.CarbonBorder
 import com.cardex.app.core.theme.CommonBlue
 import com.cardex.app.core.theme.DamagedGlacier
@@ -231,8 +231,8 @@ fun Card3DViewer(
                     Modifier.fillMaxSize()
                 }
 
-                AsyncImage(
-                    model = imageFile,
+                CardImage(
+                    imagePath = imagePath,
                     contentDescription = card.name,
                     contentScale = ContentScale.Crop,
                     modifier = contentModifier
