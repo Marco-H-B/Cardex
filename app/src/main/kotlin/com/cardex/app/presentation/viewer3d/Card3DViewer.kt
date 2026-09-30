@@ -79,6 +79,7 @@ import kotlin.math.abs
  * - Ficha técnica de coleccionista con Float decimal inmutable y Grado oficial.
  */
 @Composable
+@Suppress("FunctionName")
 fun Card3DViewer(
     card: CardEntity,
     onDismiss: () -> Unit,

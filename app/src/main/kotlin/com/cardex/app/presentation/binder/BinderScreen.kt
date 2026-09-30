@@ -98,6 +98,7 @@ import kotlin.math.abs
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("FunctionName")
 fun BinderScreen(
     viewModel: BinderViewModel,
     onScanClick: () -> Unit
@@ -186,43 +187,42 @@ fun BinderScreen(
                                 .padding(horizontal = 16.dp, vertical = 4.dp)
                         ) {
                             SearchBar(
-                                query = uiState.searchQuery,
-                                onQueryChange = { viewModel.onSearchQueryChanged(it) },
-                                onSearch = { },
-                                active = false,
-                                onActiveChange = { },
-                                placeholder = {
-                                    Text(
-                                        text = "Buscar por nombre (O(L) con Trie)...",
-                                        color = SlateTextSecondary,
-                                        fontSize = 14.sp
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Default.Search,
-                                        contentDescription = null,
-                                        tint = MythicGold
-                                    )
-                                },
-                                trailingIcon = {
-                                    if (uiState.searchQuery.isNotEmpty()) {
-                                        IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
-                                            Icon(
-                                                imageVector = Icons.Default.Close,
-                                                contentDescription = "Borrar",
-                                                tint = SlateTextSecondary
+                                inputField = {
+                                    SearchBarDefaults.InputField(
+                                        query = uiState.searchQuery,
+                                        onQueryChange = { viewModel.onSearchQueryChanged(it) },
+                                        onSearch = { },
+                                        expanded = false,
+                                        onExpandedChange = { },
+                                        placeholder = {
+                                            Text(
+                                                text = "Buscar por nombre (O(L) con Trie)...",
+                                                color = SlateTextSecondary,
+                                                fontSize = 14.sp
                                             )
+                                        },
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = Icons.Default.Search,
+                                                contentDescription = null,
+                                                tint = MythicGold
+                                            )
+                                        },
+                                        trailingIcon = {
+                                            if (uiState.searchQuery.isNotEmpty()) {
+                                                IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Close,
+                                                        contentDescription = "Borrar",
+                                                        tint = SlateTextSecondary
+                                                    )
+                                                }
+                                            }
                                         }
-                                    }
-                                },
-                                colors = SearchBarDefaults.colors(
-                                    containerColor = GraphiteSurface,
-                                    inputFieldColors = androidx.compose.material3.TextFieldDefaults.colors(
-                                        focusedTextColor = SnowTextPrimary,
-                                        unfocusedTextColor = SnowTextPrimary
                                     )
-                                ),
+                                },
+                                expanded = false,
+                                onExpandedChange = { },
                                 shape = RoundedCornerShape(16.dp),
                                 modifier = Modifier.fillMaxWidth()
                             ) {}
@@ -517,6 +517,7 @@ fun BinderScreen(
  * Emula la apariencia física de una funda plástica de polipropileno para TCG.
  */
 @Composable
+@Suppress("FunctionName")
 private fun BinderPocketSlot(
     card: CardEntity?,
     slotNumber: Int,
