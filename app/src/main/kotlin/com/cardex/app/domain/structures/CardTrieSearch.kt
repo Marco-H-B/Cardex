@@ -87,26 +87,24 @@ class CardTrieSearch {
     // Busca todas las cartas cuyos nombres comiencen con el prefijo dado.
     // Complejidad temporal: O(L + K), donde L es la longitud del prefijo y K los nodos descendientes.
     fun searchPrefix(prefix: String): List<String> {
-        // TODO: [Paso 1] Normalizar: val cleanPrefix = prefix.trim().lowercase()
-        //
-        // TODO: [Paso 2] Navegar hasta el nodo donde termina el prefijo:
-        //   - var current = root
-        //   - Para cada 'char' en cleanPrefix:
-        //       val nextNode = current.children[char] ?: return emptyList()
-        //       current = nextNode
-        //
-        // TODO: [Paso 3] Desde ese nodo 'current', recolectar todos los cardCatalogIds del subárbol:
-        //   - Crear una lista resultado: val results = mutableListOf<String>()
-        //   - Llamar a una función auxiliar recursiva: collectIds(current, results)
-        //   - Retornar results
-        throw NotImplementedError("Implementa searchPrefix siguiendo los pasos guiados.")
+        val cleanPrefix = prefix.trim().lowercase()
+        var current = root
+
+        for (char in cleanPrefix) {
+            val nextNode = current.children[char] ?: return emptyList()
+            current = nextNode
+        }
+
+        val results = mutableListOf<String>()
+        collectIds(current, results)
+
+        return results
     }
 
     // Vacía completamente el árbol y reinicia el contador de palabras.
     fun clear() {
-        // TODO: [Paso 1] Invocar root.clear() para limpiar recursivamente todos los hijos.
-        // TODO: [Paso 2] Reiniciar totalWords = 0.
-        throw NotImplementedError("Implementa clear siguiendo los pasos guiados.")
+        root.clear()
+        totalWords = 0
     }
 
     // Función auxiliar recursiva para recolectar IDs en profundidad (DFS).
