@@ -54,13 +54,13 @@ class BinderNode<T>(val pageIndex: Int) {
         slots[slotIndex] = card
     }
 
-    // Retorna un arreglo con las 9 ranuras para renderizar en Jetpack Compose.
-    @Suppress("UNCHECKED_CAST")
-    fun getCards(): Array<T?> {
-        val result = arrayOfNulls<Any?>(PAGE_SIZE)
-        System.arraycopy(slots, 0, result, 0, PAGE_SIZE)
-
-        return result as Array<T?>
+    // Retorna una lista con las 9 ranuras para renderizar en Jetpack Compose.
+    fun getCards(): List<T?> {
+        val result = ArrayList<T?>(PAGE_SIZE)
+        for (i in 0 until PAGE_SIZE) {
+            result.add(getCard(i))
+        }
+        return result
     }
 
     // Limpia todas las referencias del nodo para el Garbage Collector.
