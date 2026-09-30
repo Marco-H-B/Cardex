@@ -12,6 +12,8 @@ import com.cardex.app.core.theme.CardexTheme
 import com.cardex.app.data.image.WebpCardCompressor
 import com.cardex.app.data.local.database.CardDatabase
 import com.cardex.app.data.repository.CardRepositoryImpl
+import com.cardex.app.presentation.binder.BinderScreen
+import com.cardex.app.presentation.binder.BinderViewModel
 import com.cardex.app.presentation.scanner.ScannerScreen
 import com.cardex.app.presentation.scanner.ScannerViewModel
 
@@ -36,6 +38,9 @@ class MainActivity : ComponentActivity() {
                         webpCardCompressor = compressor
                     )
                 }
+                val binderViewModel = remember {
+                    BinderViewModel(cardRepository = repository)
+                }
 
                 if (currentScreen == "scanner") {
                     ScannerScreen(
@@ -43,7 +48,8 @@ class MainActivity : ComponentActivity() {
                         onNavigateBack = { currentScreen = "home" }
                     )
                 } else {
-                    HomeScreen(
+                    BinderScreen(
+                        viewModel = binderViewModel,
                         onScanClick = { currentScreen = "scanner" }
                     )
                 }

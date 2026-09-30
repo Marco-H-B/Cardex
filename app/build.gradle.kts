@@ -70,6 +70,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    // Coil (Carga asíncrona eficiente de imágenes WebP locales y remotas)
+    implementation("io.coil-kt:coil-compose:2.7.0")
+
     // Activity Compose & Lifecycle
     implementation("androidx.activity:activity-compose:1.9.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
