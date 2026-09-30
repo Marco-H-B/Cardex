@@ -152,25 +152,23 @@ class BinderDoublyLinkedList<T> {
     // Desplaza la página activa a la siguiente (página i + 1) en O(1).
     // Retorna true si avanzó con éxito, o false si ya se encuentra en la última página (tail) o no hay páginas.
     fun nextPage(): Boolean {
-        // TODO: [Paso 1] Verificar si currentPage?.next no es null:
-        //   - Actualizar el puntero: currentPage = currentPage!!.next
-        //   - Retornar true
-        //
-        // TODO: [Paso 2] Si currentPage?.next es null (estamos en el límite tail o lista vacía):
-        //   - Retornar false (sin mover ningún puntero)
-        throw NotImplementedError("Implementa nextPage siguiendo los pasos guiados.")
+        if (currentPage?.next != null) {
+            currentPage = currentPage!!.next
+            return true
+        } else {
+            return false
+        }
     }
 
     // Desplaza la página activa a la anterior (página i - 1) en O(1).
     // Retorna true si retrocedió con éxito, o false si ya se encuentra en la primera página (head) o no hay páginas.
     fun previousPage(): Boolean {
-        // TODO: [Paso 1] Verificar si currentPage?.prev no es null:
-        //   - Actualizar el puntero: currentPage = currentPage!!.prev
-        //   - Retornar true
-        //
-        // TODO: [Paso 2] Si currentPage?.prev es null (estamos en el límite head o lista vacía):
-        //   - Retornar false (sin mover ningún puntero)
-        throw NotImplementedError("Implementa previousPage siguiendo los pasos guiados.")
+        if (currentPage?.prev != null) {
+            currentPage = currentPage!!.prev
+            return true
+        } else {
+            return false
+        }
     }
 
     // Busca y retorna una página dado su índice numérico (0 .. totalPages - 1).
@@ -190,11 +188,10 @@ class BinderDoublyLinkedList<T> {
         //     - Iniciar una variable temporal en tail (var current = tail)
         //     - Iterar desde (totalPages - 1) hacia abajo hasta index + 1 retrocediendo: current = current!!.prev
         //     - Retornar current!!
-        throw NotImplementedError("Implementa getPage siguiendo los pasos guiados.")
     }
 
     // Vacía completamente el archivador, rompiendo los enlaces entre nodos y seteando referencias a null.
-    // Crucial para evitar que el recolector de basura mantenga páginas en memoria viva.
+// Crucial para evitar que el recolector de basura mantenga páginas en memoria viva.
     fun clear() {
         // TODO: [Paso 1] Recorrer la lista desde head hacia adelante:
         //   - Iniciar var current = head
@@ -209,6 +206,5 @@ class BinderDoublyLinkedList<T> {
         //   currentPage = null
         //   totalCards = 0
         //   totalPages = 0
-        throw NotImplementedError("Implementa clear siguiendo los pasos guiados.")
     }
 }
