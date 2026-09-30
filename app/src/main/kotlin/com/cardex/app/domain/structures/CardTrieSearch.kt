@@ -68,17 +68,20 @@ class CardTrieSearch {
     // Verifica si una palabra exacta existe en el árbol como fin de palabra.
     // Complejidad temporal: O(L).
     fun containsExact(cardName: String): Boolean {
-        // TODO: [Paso 1] Normalizar: val cleanName = cardName.trim().lowercase()
-        //   Si cleanName está vacío, retornar false.
-        //
-        // TODO: [Paso 2] Navegar desde root:
-        //   - var current = root
-        //   - Para cada 'char' en cleanName:
-        //       val nextNode = current.children[char] ?: return false
-        //       current = nextNode
-        //
-        // TODO: [Paso 3] Retornar current.isEndOfWord.
-        throw NotImplementedError("Implementa containsExact siguiendo los pasos guiados.")
+        val cleanName = cardName.trim().lowercase()
+
+        if (cleanName.isEmpty()) {
+            return false
+        }
+
+        var current = root
+
+        for (char in cleanName) {
+            val nextNode = current.children[char] ?: return false
+            current = nextNode
+        }
+
+        return current.isEndOfWord
     }
 
     // Busca todas las cartas cuyos nombres comiencen con el prefijo dado.
