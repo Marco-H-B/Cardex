@@ -175,36 +175,45 @@ class BinderDoublyLinkedList<T> {
     // Optimización asintótica: Si el índice está en la primera mitad, recorre desde head hacia adelante.
     // Si está en la segunda mitad, recorre desde tail hacia atrás.
     fun getPage(index: Int): BinderNode<T> {
-        // TODO: [Paso 1] Validar que el índice esté dentro del rango válido [0, totalPages - 1].
-        //   Si está fuera de rango o totalPages == 0:
-        //   lanzar IndexOutOfBoundsException("Índice de página fuera de rango: $index")
-        //
-        // TODO: [Paso 2] Optimizar búsqueda bidireccional:
-        //   Si index < totalPages / 2:
-        //     - Iniciar una variable temporal en head (var current = head)
-        //     - Iterar con un bucle for desde 0 hasta index - 1 avanzando: current = current!!.next
-        //     - Retornar current!!
-        //   En caso contrario (está en la segunda mitad):
-        //     - Iniciar una variable temporal en tail (var current = tail)
-        //     - Iterar desde (totalPages - 1) hacia abajo hasta index + 1 retrocediendo: current = current!!.prev
-        //     - Retornar current!!
+        if (index !in 0 until totalPages) {
+            throw IndexOutOfBoundsException ("Índice de página fuera de rango: $index")
+        }
+
+        if (index < totalPages / 2) {
+            var current = head
+
+            for (i in 0 until index) {
+                current = current!!.next
+            }
+
+            return current!!
+        } else {
+            var current = tail
+            val steps = (totalPages - 1) - index
+
+            for (i in 0 until steps) {
+                current = current!!.prev
+            }
+
+            return current!!
+        }
     }
 
     // Vacía completamente el archivador, rompiendo los enlaces entre nodos y seteando referencias a null.
-// Crucial para evitar que el recolector de basura mantenga páginas en memoria viva.
+    // Crucial para evitar que el recolector de basura mantenga páginas en memoria viva.
     fun clear() {
-        // TODO: [Paso 1] Recorrer la lista desde head hacia adelante:
-        //   - Iniciar var current = head
-        //   - Mientras current != null:
-        //       val nextNode = current.next
-        //       current.clear() // Limpia el arreglo y punteros del nodo
-        //       current = nextNode
-        //
-        // TODO: [Paso 2] Reiniciar los atributos de la lista a su estado inicial:
-        //   head = null
-        //   tail = null
-        //   currentPage = null
-        //   totalCards = 0
-        //   totalPages = 0
+        var current = head
+
+        while (current != null) {
+            val nextNode = current.next
+            current.clear()
+            current = nextNode
+        }
+
+        head = null
+        tail = null
+        currentPage = null
+        totalCards = 0
+        totalPages = 0
     }
 }
