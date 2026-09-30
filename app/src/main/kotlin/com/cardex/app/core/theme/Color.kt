@@ -1,4 +1,4 @@
-﻿package com.cardex.app.core.theme
+package com.cardex.app.core.theme
 
 import androidx.compose.ui.graphics.Color
 
@@ -16,3 +16,4 @@ val EpicCrimson = Color(0xFFE63946)     // 0.07 - 0.15 (Casi Perfecta)
 val RarePurple = Color(0xFF9D4EDD)      // 0.15 - 0.38 (Desgaste Ligero)
 val CommonBlue = Color(0xFF023E8A)      // 0.38 - 0.70 (Bordes Blancos)
 val DamagedCyan = Color(0xFF90E0EF)     // 0.70 - 1.00 (Dañada o Partida)
+val DamagedGlacier = DamagedCyan
