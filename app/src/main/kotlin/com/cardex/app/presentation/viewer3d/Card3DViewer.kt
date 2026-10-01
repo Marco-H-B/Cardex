@@ -1,5 +1,6 @@
 package com.cardex.app.presentation.viewer3d
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -17,8 +18,10 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cardex.app.presentation.common.CardImage
 import com.cardex.app.core.theme.CarbonBorder
+import com.cardex.app.core.theme.CardexGreen
 import com.cardex.app.core.theme.CommonBlue
 import com.cardex.app.core.theme.DamagedGlacier
 import com.cardex.app.core.theme.EpicCrimson
@@ -98,13 +102,15 @@ fun Card3DViewer(
 
     // Color temático del Grado de desgaste (Float Tier)
     val gradeColor = when (card.conditionGrade?.lowercase()) {
-        "mítico", "mitico", "gem mint" -> MythicGold
+        "mítico", "mitico", "gem mint", "mint" -> MythicGold
         "épico", "epico", "near mint" -> EpicCrimson
         "raro", "excellent" -> RarePurple
         "común", "comun", "light played" -> CommonBlue
         "dañado", "danado", "poor" -> DamagedGlacier
-        else -> MythicGold
+        else -> SlateTextSecondary
     }
+
+    BackHandler { onDismiss() }
 
     // Fondo degradado radial centrado en #1A1A1A hacia #000000 OLED
     Box(
@@ -116,68 +122,78 @@ fun Card3DViewer(
                     radius = 1200f
                 )
             )
-            .pointerInput(Unit) {
-                detectDragGestures { change, dragAmount ->
-                    change.consume()
-                    // Factor de sensibilidad táctil calibrado
-                    val sensitivity = 0.5f
-                    rotationY += dragAmount.x * sensitivity
-                    // Limitar rotación X entre -45° y 45° para ergonomía visual
-                    rotationX = (rotationX - dragAmount.y * sensitivity).coerceIn(-45f, 45f)
-                }
-            }
     ) {
-        // Botón de cierre en esquina superior derecha
-        IconButton(
-            onClick = onDismiss,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 40.dp, end = 20.dp)
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(GraphiteSurface.copy(alpha = 0.8f))
-                .border(1.dp, CarbonBorder, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Cerrar visor 3D",
-                tint = SnowTextPrimary
-            )
-        }
-
-        // Indicador de control táctil superior
+        // Barra Superior: Safe Area con statusBarsPadding() para evitar notch / Dynamic Island
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 48.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(GraphiteSurface.copy(alpha = 0.85f))
-                .border(1.dp, CarbonBorder, RoundedCornerShape(20.dp))
-                .padding(horizontal = 14.dp, vertical = 6.dp),
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.RotateRight,
-                contentDescription = null,
-                tint = gradeColor,
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = if (isFrontVisible) "Anverso (Cara A)" else "Reverso (Cara B)",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = SnowTextPrimary
+            // Espaciador izquierdo de 44dp para equilibrar simétricamente con el botón de cerrar
+            Spacer(modifier = Modifier.size(44.dp))
+
+            // Indicador de control táctil superior central
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(GraphiteSurface.copy(alpha = 0.85f))
+                    .border(1.dp, CarbonBorder, RoundedCornerShape(20.dp))
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.RotateRight,
+                    contentDescription = null,
+                    tint = CardexGreen,
+                    modifier = Modifier.size(16.dp)
                 )
-            )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = if (isFrontVisible) "Anverso (Cara A)" else "Reverso (Cara B)",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = SnowTextPrimary
+                    )
+                )
+            }
+
+            // Botón de cierre en esquina superior derecha (44dp de área táctil según Apple HIG)
+            IconButton(
+                onClick = onDismiss,
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(GraphiteSurface.copy(alpha = 0.8f))
+                    .border(1.dp, CarbonBorder, CircleShape)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Cerrar visor 3D",
+                    tint = SnowTextPrimary
+                )
+            }
         }
 
         // Contenedor Central de la Carta 3D
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 40.dp, vertical = 120.dp),
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(start = 36.dp, end = 36.dp, top = 64.dp, bottom = 180.dp)
+                .pointerInput(Unit) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        val sensitivity = 0.5f
+                        rotationY += dragAmount.x * sensitivity
+                        rotationX = (rotationX - dragAmount.y * sensitivity).coerceIn(-45f, 45f)
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             // Sombra ovalada de proyección en suelo dinámica
@@ -270,6 +286,7 @@ fun Card3DViewer(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .padding(16.dp),
             shape = RoundedCornerShape(24.dp),
             color = GraphiteSurface.copy(alpha = 0.95f),
@@ -365,7 +382,7 @@ fun Card3DViewer(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
                             .background(
-                                if (card.catalogId != null) MythicGold.copy(alpha = 0.2f)
+                                if (card.catalogId != null) CardexGreen.copy(alpha = 0.2f)
                                 else Color(0xFF3A3A3C)
                             )
                             .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -374,7 +391,7 @@ fun Card3DViewer(
                             Icon(
                                 imageVector = Icons.Default.Verified,
                                 contentDescription = null,
-                                tint = MythicGold,
+                                tint = CardexGreen,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -382,7 +399,7 @@ fun Card3DViewer(
                                 text = "OFICIAL TCG",
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = MythicGold,
+                                    color = CardexGreen,
                                     fontSize = 11.sp
                                 )
                             )
@@ -407,7 +424,7 @@ fun Card3DViewer(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = gradeColor,
+                        containerColor = CardexGreen,
                         contentColor = OledBlack
                     )
                 ) {
