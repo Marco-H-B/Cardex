@@ -583,15 +583,16 @@ private fun BinderPocketSlot(
 ) {
     val primaryCard = slotItem?.primaryCard
     val count = slotItem?.count ?: 0
-    val gradeColor = primaryCard?.getConditionGradeColor(fallback = CarbonBorder) ?: CarbonBorder
+    val outlineColor = MaterialTheme.colorScheme.outline
+    val gradeColor = primaryCard?.getConditionGradeColor(fallback = outlineColor) ?: outlineColor
 
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(GraphiteSurface.copy(alpha = 0.6f))
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f))
             .border(
                 width = if (slotItem != null) 1.dp else 0.75.dp,
-                color = if (slotItem != null) gradeColor.copy(alpha = 0.7f) else CarbonBorder,
+                color = if (slotItem != null) gradeColor.copy(alpha = 0.7f) else outlineColor,
                 shape = RoundedCornerShape(8.dp)
             )
             .clickable(enabled = slotItem != null, onClick = onClick),
@@ -607,8 +608,8 @@ private fun BinderPocketSlot(
                         .offset(x = (-4).dp, y = 3.dp)
                         .rotate(-5f)
                         .clip(RoundedCornerShape(6.dp))
-                        .background(OledBlack)
-                        .border(0.75.dp, CarbonBorder, RoundedCornerShape(6.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(0.75.dp, outlineColor, RoundedCornerShape(6.dp))
                 ) {
                     CardImage(
                         imagePath = backImage,
@@ -628,8 +629,8 @@ private fun BinderPocketSlot(
                         .offset(x = 4.dp, y = 2.dp)
                         .rotate(3.5f)
                         .clip(RoundedCornerShape(7.dp))
-                        .background(OledBlack)
-                        .border(0.75.dp, CarbonBorder, RoundedCornerShape(7.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(0.75.dp, outlineColor, RoundedCornerShape(7.dp))
                 ) {
                     CardImage(
                         imagePath = midImage,
@@ -661,7 +662,7 @@ private fun BinderPocketSlot(
                             .fillMaxWidth()
                             .background(
                                 Brush.verticalGradient(
-                                    colors = listOf(Color.Transparent, OledBlack.copy(alpha = 0.9f))
+                                    colors = listOf(Color.Transparent, MaterialTheme.colorScheme.surface.copy(alpha = 0.92f))
                                 )
                             )
                             .padding(horizontal = 4.dp, vertical = 3.dp)
@@ -671,7 +672,7 @@ private fun BinderPocketSlot(
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = SnowTextPrimary
+                                color = MaterialTheme.colorScheme.onSurface
                             ),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -689,8 +690,8 @@ private fun BinderPocketSlot(
                         .align(Alignment.TopEnd)
                         .padding(4.dp)
                         .clip(CircleShape)
-                        .background(OledBlack.copy(alpha = 0.9f))
-                        .border(1.dp, CardexGreen, CircleShape)
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+                        .border(1.dp, MaterialTheme.colorScheme.primary, CircleShape)
                         .padding(horizontal = 6.dp, vertical = 2.dp),
                     contentAlignment = Alignment.Center
                 ) {
@@ -699,7 +700,7 @@ private fun BinderPocketSlot(
                         style = MaterialTheme.typography.labelSmall.copy(
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Black,
-                            color = CardexGreen,
+                            color = MaterialTheme.colorScheme.primary,
                             fontFamily = FontFamily.Monospace
                         )
                     )
@@ -715,7 +716,7 @@ private fun BinderPocketSlot(
                     text = "#${slotNumber.toString().padStart(3, '0')}",
                     style = MaterialTheme.typography.labelSmall.copy(
                         fontFamily = FontFamily.Monospace,
-                        color = SlateTextSecondary.copy(alpha = 0.4f),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
                         fontSize = 11.sp
                     )
                 )
