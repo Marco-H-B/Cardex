@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,6 +44,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,14 +56,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cardex.app.core.config.SubscriptionConfig
 import com.cardex.app.core.theme.CarbonBorder
 import com.cardex.app.core.theme.CardexGreen
 import com.cardex.app.core.theme.EpicCrimson
 import com.cardex.app.core.theme.GraphiteSurface
+import com.cardex.app.core.theme.MythicGold
 import com.cardex.app.core.theme.OledBlack
 import com.cardex.app.core.theme.SlateTextSecondary
 import com.cardex.app.core.theme.SnowTextPrimary
 import com.cardex.app.domain.model.CardSide
+import com.cardex.app.presentation.subscription.CardexProBottomSheet
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning
 
@@ -75,6 +82,7 @@ fun ScannerScreen(
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var isProSheetOpen by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val activity = context as? Activity
 
@@ -119,11 +127,50 @@ fun ScannerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // 1. Barra Superior con Indicador de Cara y Progreso
+            // 1. Barra Superior con Indicador de Cara, Cuota Diaria y Progreso
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Indicador discreto de cuota diaria y acceso a Cardex Pro
+                Surface(
+                    onClick = { isProSheetOpen = true },
+                    shape = RoundedCornerShape(12.dp),
+                    color = GraphiteSurface,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, CarbonBorder),
+                    modifier = Modifier.padding(bottom = 10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.WorkspacePremium,
+                            contentDescription = null,
+                            tint = MythicGold,
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Cuota Diaria: ${SubscriptionConfig.FREE_DAILY_SCAN_LIMIT} cartas",
+                            color = SlateTextSecondary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = " • ",
+                            color = SlateTextSecondary,
+                            fontSize = 12.sp
+                        )
+                        Text(
+                            text = "Hazte PRO",
+                            color = CardexGreen,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
                 Text(
                     text = "MOTOR ÓPTICO DE ESCANEO",
                     color = SlateTextSecondary,
@@ -375,5 +422,11 @@ fun ScannerScreen(
                 }
             }
         }
+
+        // Hoja Modal de Suscripción a Cardex Pro
+        CardexProBottomSheet(
+            isOpen = isProSheetOpen,
+            onDismiss = { isProSheetOpen = false }
+        )
     }
 }

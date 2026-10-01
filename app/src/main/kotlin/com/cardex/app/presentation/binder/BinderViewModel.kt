@@ -27,7 +27,7 @@ class BinderViewModel(
     val uiState: StateFlow<BinderUiState> = _uiState.asStateFlow()
 
     // Estructura algorítmica canónica de CC232 para paginación bidireccional en O(1)
-    internal val binderList = BinderDoublyLinkedList<CardEntity>()
+    internal val binderList = BinderDoublyLinkedList<CardSlotItem>()
 
     // Estructura algorítmica canónica de CC232 para autocompletado en memoria RAM en O(L)
     internal val cardTrie = CardTrieSearch()
@@ -53,11 +53,9 @@ class BinderViewModel(
 
     /**
      * Reconstruye la Lista Doblemente Enlazada y el Árbol Trie aplicando los filtros activos.
-     * Marco debe implementar esta lógica asegurando que la memoria se libere correctamente.
+     * Agrupa cartas duplicadas en una misma ranura mostrando hasta 3 sobrepuestas con contador.
      */
     internal fun rebuildBinderAndIndex() {
-        // TODO: [Marco - Paso 1]: Limpiar las estructuras de datos previas (binderList.clear(), cardTrie.clear(), cardLookupMap.clear())
-        //       para evitar fugas de memoria (memory leaks) en el Garbage Collector.
         binderList.clear()
         cardTrie.clear()
         cardLookupMap.clear()
@@ -75,23 +73,76 @@ class BinderViewModel(
             matchesCategory && matchesGrade
         }
 
-        // TODO: [Marco - Paso 2]: Iterar sobre 'filteredCards' e insertar cada carta en:
-        //       1. binderList.appendCard(card) -> para poblar las hojas del archivador.
-        //       2. cardTrie.insert(card.name, card.id) -> para indexar las palabras del buscador.
-        //       3. cardLookupMap[card.id] = card -> para poder recuperar la entidad rápidamente.
+        // Indexar cada carta física en el Trie y Map para el buscador
         for (card in filteredCards) {
-            binderList.appendCard(card)
             cardTrie.insert(card.name, card.id)
             cardLookupMap[card.id] = card
         }
 
-        // TODO: [Marco - Paso 3]: Actualizar el estado '_uiState' con los nuevos valores:
-        //       - totalPages: binderList.totalPages()
-        //       - totalCards: binderList.totalCards()
-        //       - currentPageIndex: 0 si está vacío, o el índice actual ajustado
-        //       - currentSlots: extraer las 9 cartas de la página activa mediante binderList.getCurrentPage()?.getCards()?.toList() ?: List(9) { null }
-        //       - isLoading: false
-        syncStateWithCurrentPage()
+        // Agrupar cartas duplicadas por su clave de identidad o número de coleccionista
+        val groupedCards = filteredCards.groupBy { getGroupingKey(it) }
+
+        val slotItems = groupedCards.values.map { cardGroup ->
+            // Ordenar copias para que la de mejor estado (menor float) quede visible arriba
+            val sortedCopies = cardGroup.sortedBy { it.conditionFloat ?: 1.0 }
+            CardSlotItem(
+                primaryCard = sortedCopies.first(),
+                copies = sortedCopies,
+                count = sortedCopies.size
+            )
+        }
+
+        // Iterar sobre 'slotItems' e insertar según el modo de visualización:
+        // - En ALL: Modo denso / cronológico conforme el usuario fue escaneando (appendCard).
+        // - En TCG y GENERIC: Modo Álbum Disperso por número de coleccionista (#001 a #999).
+        if (_uiState.value.selectedCategory == CardCategoryFilter.ALL) {
+            for (slotItem in slotItems) {
+                binderList.appendCard(slotItem)
+            }
+        } else {
+            // Ordenamiento por posición fija según el número de la carta
+            for (slotItem in slotItems) {
+                val cardNum = extractCardNumber(slotItem.primaryCard)
+                if (cardNum != null && cardNum > 0) {
+                    binderList.setCardAtPosition(cardNum - 1, slotItem)
+                } else {
+                    binderList.appendCard(slotItem)
+                }
+            }
+        }
+
+        syncStateWithCurrentPage(filteredCards.size)
+    }
+
+    private fun getGroupingKey(card: CardEntity): String {
+        val num = extractCardNumber(card)
+        return if (num != null) {
+            "NUM_$num"
+        } else if (!card.catalogId.isNullOrBlank()) {
+            "CAT_${card.catalogId}"
+        } else {
+            "NAME_${card.name.trim().lowercase()}"
+        }
+    }
+
+    /**
+     * Extrae el número entero de coleccionista de la carta (ej. #439 -> 439, 025/165 -> 25).
+     */
+    private fun extractCardNumber(card: CardEntity): Int? {
+        val fromNumber = card.cardNumber?.let { numStr ->
+            Regex("""\d+""").find(numStr)?.value?.toIntOrNull()
+        }
+        if (fromNumber != null && fromNumber > 0) return fromNumber
+
+        val fromName = Regex("""#(\d+)""").find(card.name)?.groupValues?.getOrNull(1)?.toIntOrNull()
+        if (fromName != null && fromName > 0) return fromName
+
+        val fromCatalog = card.catalogId?.let { catId ->
+            Regex("""\d+""").find(catId)?.value?.toIntOrNull()
+        }
+        if (fromCatalog != null && fromCatalog > 0) return fromCatalog
+
+        return null
     }
 
     /**
@@ -179,7 +230,7 @@ class BinderViewModel(
     /**
      * Sincroniza las 9 ranuras visibles de la página activa con el estado inmutable de Compose.
      */
-    private fun syncStateWithCurrentPage() {
+    private fun syncStateWithCurrentPage(totalPhysicalCards: Int? = null) {
         val currentPage = binderList.getCurrentPage()
         val slots = currentPage?.getCards() ?: List(9) { null }
         val pageIdx = currentPage?.pageIndex ?: 0
@@ -188,7 +239,7 @@ class BinderViewModel(
             current.copy(
                 currentPageIndex = pageIdx,
                 totalPages = binderList.totalPages(),
-                totalCards = binderList.totalCards(),
+                totalCards = totalPhysicalCards ?: current.totalCards.takeIf { it > 0 } ?: binderList.totalCards(),
                 currentSlots = slots,
                 isLoading = false
             )

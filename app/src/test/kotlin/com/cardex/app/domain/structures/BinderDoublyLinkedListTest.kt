@@ -273,4 +273,64 @@ class BinderDoublyLinkedListTest {
         }
         assertEquals(0, binder.getCurrentPage()!!.pageIndex)
     }
+
+    @Test
+    fun `setCardAtPosition en posicion 438 para carta 439 debe crear 49 paginas y ubicarla en bolsillo 6 de pagina 48`() {
+        // Posición global 438 = Carta #439 (0-indexed)
+        binder.setCardAtPosition(438, "Carta_Generica_439")
+
+        assertEquals(1, binder.totalCards())
+        assertEquals(49, binder.totalPages()) // 438 / 9 = 48 -> paginas 0 a 48 = 49 paginas
+
+        val page48 = binder.getPage(48)
+        assertEquals(48, page48.pageIndex)
+        assertEquals(1, page48.cardCount)
+        assertEquals("Carta_Generica_439", page48.getCard(6)) // 438 % 9 = 6
+        assertNull(page48.getCard(0))
+        assertNull(page48.getCard(5))
+        assertNull(page48.getCard(7))
+
+        // La pagina 0 debe existir y estar vacia esperando las cartas #001 a #009
+        val page0 = binder.getHead()!!
+        assertEquals(0, page0.pageIndex)
+        assertEquals(0, page0.cardCount)
+        assertTrue(page0.isEmpty())
+        assertNull(page0.getCard(0))
+    }
+
+    @Test
+    fun `setCardAtPosition en multiples ranuras dispersas debe contabilizar totalCards correctamente`() {
+        binder.setCardAtPosition(0, "Carta_001")   // Página 0, Bolsillo 0
+        binder.setCardAtPosition(8, "Carta_009")   // Página 0, Bolsillo 8
+        binder.setCardAtPosition(9, "Carta_010")   // Página 1, Bolsillo 0
+        binder.setCardAtPosition(89, "Carta_090")  // Página 9, Bolsillo 8
+
+        assertEquals(4, binder.totalCards())
+        assertEquals(10, binder.totalPages())
+
+        assertEquals("Carta_001", binder.getPage(0).getCard(0))
+        assertEquals("Carta_009", binder.getPage(0).getCard(8))
+        assertEquals("Carta_010", binder.getPage(1).getCard(0))
+        assertEquals("Carta_090", binder.getPage(9).getCard(8))
+    }
+
+    @Test(expected = IndexOutOfBoundsException::class)
+    fun `setCardAtPosition con indice negativo debe lanzar IndexOutOfBoundsException`() {
+        binder.setCardAtPosition(-1, "Carta_Invalida")
+    }
+
+    @Test
+    fun `clear despues de poblar album disperso debe liberar todas las paginas y memoria`() {
+        binder.setCardAtPosition(438, "Carta_439")
+        assertEquals(49, binder.totalPages())
+
+        binder.clear()
+
+        assertTrue(binder.isEmpty())
+        assertEquals(0, binder.totalCards())
+        assertEquals(0, binder.totalPages())
+        assertNull(binder.getHead())
+        assertNull(binder.getTail())
+        assertNull(binder.getCurrentPage())
+    }
 }

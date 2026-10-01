@@ -12,6 +12,22 @@ enum class CardCategoryFilter {
 }
 
 /**
+ * Modelo que encapsula el contenido de un bolsillo individual del archivador 3x3.
+ * Soporta apilamiento de cartas duplicadas de la misma posición (hasta 3 visibles con contador de copias).
+ */
+data class CardSlotItem(
+    val primaryCard: CardEntity,
+    val copies: List<CardEntity> = listOf(primaryCard),
+    val count: Int = copies.size
+) {
+    val name: String get() = primaryCard.name
+    val id: String get() = primaryCard.id
+    val conditionGrade: String? get() = primaryCard.conditionGrade
+    val conditionFloat: Double? get() = primaryCard.conditionFloat
+    val frontThumbnailPath: String get() = primaryCard.frontThumbnailPath
+}
+
+/**
  * Estado inmutable de la interfaz de usuario para el Archivador Virtual 3x3.
  *
  * @property currentPageIndex Índice de la página actualmente desplegada (base 0).
@@ -30,7 +46,7 @@ data class BinderUiState(
     val currentPageIndex: Int = 0,
     val totalPages: Int = 0,
     val totalCards: Int = 0,
-    val currentSlots: List<CardEntity?> = List(9) { null },
+    val currentSlots: List<CardSlotItem?> = List(9) { null },
     val searchQuery: String = "",
     val searchSuggestions: List<CardEntity> = emptyList(),
     val selectedCategory: CardCategoryFilter = CardCategoryFilter.ALL,

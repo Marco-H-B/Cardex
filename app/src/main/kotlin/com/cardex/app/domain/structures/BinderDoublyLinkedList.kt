@@ -149,6 +149,52 @@ class BinderDoublyLinkedList<T> {
         totalCards++
     }
 
+    /**
+     * Coloca una carta en una posición global fija (0-indexed) de la colección.
+     * Si la posición requiere páginas adicionales, expande la lista doblemente enlazada
+     * instanciando los nodos necesarios con sus 9 ranuras vacías (null).
+     *
+     * Invariantes de memoria y consistencia:
+     * - Si la ranura ya contenía una carta y se sobreescribe con otra, totalCards no cambia.
+     * - Si la ranura estaba vacía y se asigna una carta, totalCards incrementa en 1.
+     * - Si la ranura tenía carta y se asigna null, totalCards decrementa en 1.
+     */
+    fun setCardAtPosition(globalSlotIndex: Int, card: T) {
+        if (globalSlotIndex < 0) {
+            throw IndexOutOfBoundsException("Índice de ranura global negativo: $globalSlotIndex")
+        }
+
+        val targetPageIndex = globalSlotIndex / PAGE_SIZE
+        val slotInPage = globalSlotIndex % PAGE_SIZE
+
+        if (head == null) {
+            val newNode = BinderNode<T>(0)
+            head = newNode
+            tail = newNode
+            currentPage = newNode
+            totalPages = 1
+        }
+
+        while (totalPages <= targetPageIndex) {
+            val newNode = BinderNode<T>(totalPages)
+            tail!!.next = newNode
+            newNode.prev = tail
+            tail = newNode
+            totalPages++
+        }
+
+        val targetNode = getPage(targetPageIndex)
+        val previousCard = targetNode.getCard(slotInPage)
+
+        targetNode.setCard(slotInPage, card)
+
+        if (previousCard == null && card != null) {
+            totalCards++
+        } else if (previousCard != null && card == null) {
+            totalCards--
+        }
+    }
+
     // Desplaza la página activa a la siguiente (página i + 1) en O(1).
     // Retorna true si avanzó con éxito, o false si ya se encuentra en la última página (tail) o no hay páginas.
     fun nextPage(): Boolean {
