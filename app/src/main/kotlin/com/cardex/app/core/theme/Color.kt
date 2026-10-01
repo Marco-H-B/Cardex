@@ -27,6 +27,7 @@ val CardexAccent = CardexGreen
 val LightBackground = Color(0xFFF2F2F7)
 val LightSurface = Color(0xFFFFFFFF)
 val LightTextPrimary = Color(0xFF000000)
+val LightBorder = Color(0xFFE5E5EA)
 val CardexLightGreen = Color(0xFF34C759)
 
 // ==============================================================================
@@ -36,6 +37,8 @@ val MythicGold = Color(0xFFFFD700)      // 0.00 - 0.07 (Gema Impecable / Grado M
 val EpicCrimson = Color(0xFFE63946)     // 0.07 - 0.15 (Casi Perfecta / Grado Épico)
 val RarePurple = Color(0xFF9D4EDD)      // 0.15 - 0.38 (Desgaste Ligero / Grado Raro)
 val CommonBlue = Color(0xFF0A84FF)      // 0.38 - 0.70 (Bordes Blancos / Grado Común - Azul Eléctrico vibrante)
+val CommonSapphire = CommonBlue
+val RareAmethyst = RarePurple
 val DamagedCyan = Color(0xFF90E0EF)     // 0.70 - 1.00 (Dañada o Partida / Grado Dañado)
 val DamagedGlacier = DamagedCyan
 
