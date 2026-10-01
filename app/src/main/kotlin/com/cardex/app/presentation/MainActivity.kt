@@ -8,14 +8,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
 import com.cardex.app.core.theme.CardexTheme
 import com.cardex.app.data.image.WebpCardCompressor
 import com.cardex.app.data.local.database.CardDatabase
 import com.cardex.app.data.repository.CardRepositoryImpl
+import com.cardex.app.data.seed.PhysicalCardSeeder
 import com.cardex.app.presentation.binder.BinderScreen
 import com.cardex.app.presentation.binder.BinderViewModel
 import com.cardex.app.presentation.scanner.ScannerScreen
 import com.cardex.app.presentation.scanner.ScannerViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 // Actividad principal de Cardex.
 // Punto de entrada que inicializa Jetpack Compose con el Tema OLED Negro Puro.
@@ -28,6 +32,11 @@ class MainActivity : ComponentActivity() {
         val db = CardDatabase.getInstance(applicationContext)
         val repository = CardRepositoryImpl(db.cardDao())
         val compressor = WebpCardCompressor(applicationContext)
+
+        // Ingesta e inicialización de las 177 cartas físicas en segundo plano si la base de datos está vacía
+        lifecycleScope.launch(Dispatchers.IO) {
+            PhysicalCardSeeder.seedIfEmpty(repository)
+        }
 
         setContent {
             CardexTheme {

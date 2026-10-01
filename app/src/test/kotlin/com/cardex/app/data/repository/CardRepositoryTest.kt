@@ -1,4 +1,4 @@
-﻿package com.cardex.app.data.repository
+package com.cardex.app.data.repository
 
 import com.cardex.app.data.local.dao.CardDao
 import com.cardex.app.data.local.entity.CardEntity
@@ -77,6 +77,22 @@ class CardRepositoryTest {
         assertNotNull(retrieved)
         assertEquals("Pikachu", retrieved?.name)
         assertEquals("Gem Mint", retrieved?.conditionGrade)
+    }
+
+    @Test
+    fun `saveCards debe persistir un lote masivo de cartas en Room`() = runBlocking {
+        val list = listOf(
+            CardEntity(id = "c1", name = "Charizard", frontThumbnailPath = "", backThumbnailPath = "", frontHdPath = "", backHdPath = ""),
+            CardEntity(id = "c2", name = "Blastoise", frontThumbnailPath = "", backThumbnailPath = "", frontHdPath = "", backHdPath = "")
+        )
+        repository.saveCards(list)
+
+        val retrieved1 = repository.getCardById("c1").first()
+        val retrieved2 = repository.getCardById("c2").first()
+        assertNotNull(retrieved1)
+        assertNotNull(retrieved2)
+        assertEquals("Charizard", retrieved1?.name)
+        assertEquals("Blastoise", retrieved2?.name)
     }
 
     @Test

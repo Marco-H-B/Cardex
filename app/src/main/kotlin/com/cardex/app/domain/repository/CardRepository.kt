@@ -1,4 +1,4 @@
-﻿package com.cardex.app.domain.repository
+package com.cardex.app.domain.repository
 
 import com.cardex.app.data.local.entity.CardEntity
 import kotlinx.coroutines.flow.Flow
@@ -9,6 +9,7 @@ interface CardRepository {
     fun getAllCards(): Flow<List<CardEntity>>
     fun getCardById(id: String): Flow<CardEntity?>
     suspend fun saveCard(card: CardEntity)
+    suspend fun saveCards(cards: List<CardEntity>)
     suspend fun deleteCard(id: String)
     suspend fun getPendingSyncCards(): List<CardEntity>
 }

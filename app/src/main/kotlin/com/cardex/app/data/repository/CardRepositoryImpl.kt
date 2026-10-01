@@ -1,4 +1,4 @@
-﻿package com.cardex.app.data.repository
+package com.cardex.app.data.repository
 
 import com.cardex.app.data.local.dao.CardDao
 import com.cardex.app.data.local.entity.CardEntity
@@ -21,6 +21,10 @@ class CardRepositoryImpl(
 
     override suspend fun saveCard(card: CardEntity) {
         cardDao.insertCard(card)
+    }
+
+    override suspend fun saveCards(cards: List<CardEntity>) {
+        cardDao.insertCards(cards)
     }
 
     override suspend fun deleteCard(id: String) {
