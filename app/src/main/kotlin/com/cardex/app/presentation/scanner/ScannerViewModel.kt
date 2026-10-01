@@ -159,10 +159,12 @@ class ScannerViewModel(
         val front = frontCompressedImages ?: return
         val back = backCompressedImages ?: return
         val cardId = UUID.randomUUID().toString()
+        val extractedNumber = Regex("""#(\d+)""").find(cardName)?.value
 
         val cardEntity = CardEntity(
             id = cardId,
             name = cardName,
+            cardNumber = extractedNumber,
             frontThumbnailPath = front.thumbnailFile.absolutePath,
             backThumbnailPath = back.thumbnailFile.absolutePath,
             frontHdPath = front.fullHdFile.absolutePath,

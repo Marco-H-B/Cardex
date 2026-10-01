@@ -1,5 +1,6 @@
 package com.cardex.app.presentation.viewer3d
 
+import android.os.Build
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -46,8 +48,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.BlurredEdgeTreatment
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -119,54 +122,42 @@ fun Card3DViewer(
     BackHandler { onDismiss() }
 
     // Fondo dinámico adaptado al color y grado de desgaste de la carta
-    // Implementa un degradado fino, suave y con difusión exponencial hacia el negro puro OLED (#000000)
+    // Enfoque Apple HIG: Atmósfera unificada profunda + halo difuso de hardware con interacción 3D (cero bandas)
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(OledBlack)
-            .drawBehind {
-                // Cálculo del centro de resplandor óptico detrás de la carta
-                // Se incorpora un desplazamiento por paralaje sutil (tilt) al rotar la carta en 3D
-                val parallaxX = (rotationY / 45f).coerceIn(-1.5f, 1.5f) * 20.dp.toPx()
-                val parallaxY = (rotationX / 45f).coerceIn(-1.5f, 1.5f) * 15.dp.toPx()
+    ) {
+        // 1. Atmósfera unificada: baña toda la pantalla en un solo tono homogéneo y elegante
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(animatedGradeColor.copy(alpha = 0.08f))
+        )
 
-                val lightCenterX = size.width * 0.5f + parallaxX
-                val lightCenterY = size.height * 0.40f + parallaxY
+        // 2. Halo ambiental difuso de iluminación volumétrica detrás de la carta
+        // Emplea convolución gaussiana pura por hardware (RenderEffect/Blur) con interacción de rotación 3D
+        // Erradica por completo cualquier línea, anillo o salto de color
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val parallaxFactorX = (rotationY / 45f).coerceIn(-1.5f, 1.5f)
+            val parallaxFactorY = (rotationX / 45f).coerceIn(-1.5f, 1.5f)
+            val parallaxX = (24 * parallaxFactorX).dp
+            val parallaxY = (18 * parallaxFactorY).dp
 
-                // Radio dinámico calibrado según el ancho de pantalla para una apertura suave y generosa
-                val lightRadius = size.width * 1.45f
-
-                // Resplandor radial de alta precisión con curva gaussiana (evita bandas cromáticas duras)
-                drawRect(
-                    brush = Brush.radialGradient(
-                        colorStops = arrayOf(
-                            0.00f to animatedGradeColor.copy(alpha = 0.52f),
-                            0.25f to animatedGradeColor.copy(alpha = 0.38f),
-                            0.50f to animatedGradeColor.copy(alpha = 0.20f),
-                            0.75f to animatedGradeColor.copy(alpha = 0.06f),
-                            1.00f to Color.Transparent
-                        ),
-                        center = Offset(lightCenterX, lightCenterY),
-                        radius = lightRadius
+            Box(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(bottom = 58.dp) // Alineación coaxial con el centro visual de la carta
+                    .offset(x = parallaxX, y = parallaxY)
+                    .size(280.dp, 390.dp)
+                    .blur(radius = 90.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+                    .background(
+                        color = animatedGradeColor.copy(alpha = 0.22f),
+                        shape = RoundedCornerShape(36.dp)
                     )
-                )
+            )
+        }
 
-                // Velo vertical de atenuación: mantiene pureza OLED en la zona inferior de la ficha técnica
-                drawRect(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            animatedGradeColor.copy(alpha = 0.08f),
-                            Color.Transparent,
-                            OledBlack.copy(alpha = 0.65f),
-                            OledBlack
-                        ),
-                        startY = 0f,
-                        endY = size.height
-                    )
-                )
-            }
-    )
- {
         // Barra Superior: Safe Area con statusBarsPadding() para evitar notch / Dynamic Island
         Row(
             modifier = Modifier
@@ -240,48 +231,6 @@ fun Card3DViewer(
                 },
             contentAlignment = Alignment.Center
         ) {
-            // Sombra ovalada de proyección en suelo dinámica
-            Box(
-                modifier = Modifier
-                    .width(220.dp)
-                    .height(28.dp)
-                    .align(Alignment.BottomCenter)
-                    .graphicsLayer {
-                        // La sombra se comprime o estira según la inclinación
-                        scaleX = 1f + (abs(rotationX) / 90f) * 0.2f
-                        alpha = (0.5f - (abs(rotationX) / 100f)).coerceIn(0.1f, 0.5f)
-                    }
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(Color.Black.copy(alpha = 0.7f), Color.Transparent)
-                        ),
-                        shape = CircleShape
-                    )
-            )
-
-            // Resplandor ambiental suave inmediatamente detrás de la silueta física de la carta
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(1.08f)
-                    .aspectRatio(63f / 88f)
-                    .graphicsLayer {
-                        this.rotationY = rotationY * 0.20f
-                        this.rotationX = rotationX * 0.20f
-                        this.cameraDistance = 16f * density.density
-                    }
-                    .background(
-                        Brush.radialGradient(
-                            colorStops = arrayOf(
-                                0.0f to animatedGradeColor.copy(alpha = 0.40f),
-                                0.45f to animatedGradeColor.copy(alpha = 0.20f),
-                                0.75f to animatedGradeColor.copy(alpha = 0.05f),
-                                1.0f to Color.Transparent
-                            )
-                        ),
-                        shape = RoundedCornerShape(36.dp)
-                    )
-            )
-
             // Escenario de Carta 3D acelerado por hardware
             Box(
                 modifier = Modifier
@@ -293,7 +242,12 @@ fun Card3DViewer(
                         // Distancia de cámara calibrada para emular perspectiva focal de 50mm
                         this.cameraDistance = 16f * density.density
                     }
-                    .shadow(elevation = 24.dp, shape = RoundedCornerShape(12.dp))
+                    .shadow(
+                        elevation = 28.dp,
+                        shape = RoundedCornerShape(12.dp),
+                        ambientColor = animatedGradeColor.copy(alpha = 0.35f),
+                        spotColor = animatedGradeColor.copy(alpha = 0.45f)
+                    )
                     .clip(RoundedCornerShape(12.dp))
                     .background(GraphiteSurface)
                     .border(

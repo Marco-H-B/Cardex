@@ -1,4 +1,4 @@
-﻿package com.cardex.app.data.local.dao
+package com.cardex.app.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Delete
@@ -41,7 +41,7 @@ interface CardDao {
     @Query("DELETE FROM cards WHERE id = :id")
     suspend fun deleteCardById(id: String)
 
-    // Retorna la lista de cartas pendientes de sincronizar con Supabase (para alimentar el SyncDeque).
+    // Retorna la lista de cartas pendientes de sincronizar con Neon Cloud (para alimentar el SyncDeque).
     @Query("SELECT * FROM cards WHERE isSynced = 0 ORDER BY createdAt ASC")
     suspend fun getPendingSyncCards(): List<CardEntity>
 

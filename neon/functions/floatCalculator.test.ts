@@ -1,12 +1,12 @@
 // ============================================================================
-// Pruebas Unitarias TDD para el Motor de Cálculo del Float (Cardex Edge Function)
-// Ejecutable directamente con: node --experimental-strip-types --test
+// Pruebas Unitarias TDD para el Motor de Cálculo del Float (Neon Functions)
+// Ejecutable con: node --experimental-strip-types --test
 // ============================================================================
 
 import test from "node:test";
 import assert from "node:assert/strict";
 import { calculateFloat, computeHmacSignature, mapFloatToWearTier, mapSlabGradeToFloat } from "./floatCalculator.ts";
-import type { FloatCalculationRequest } from "../_shared/types.ts";
+import type { FloatCalculationRequest } from "./types.ts";
 
 const TEST_SECRET = "cardex_test_secret_key_1234567890_abcdef";
 

@@ -43,7 +43,7 @@ fun HomeScreen(
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = OledBlack,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {
@@ -51,21 +51,21 @@ fun HomeScreen(
                         text = "CARDEX",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = CardexGreen
+                            color = MaterialTheme.colorScheme.primary
                         )
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = OledBlack,
-                    titleContentColor = CardexGreen
+                    containerColor = MaterialTheme.colorScheme.background,
+                    titleContentColor = MaterialTheme.colorScheme.primary
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onScanClick,
-                containerColor = CardexGreen,
-                contentColor = OledBlack,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = CircleShape,
                 modifier = Modifier.padding(16.dp)
             ) {
@@ -89,13 +89,13 @@ fun HomeScreen(
                 modifier = Modifier
                     .size(96.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(GraphiteSurface),
+                    .background(MaterialTheme.colorScheme.surface),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.Style,
                     contentDescription = null,
-                    tint = CardexGreen,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(48.dp)
                 )
             }
@@ -105,7 +105,7 @@ fun HomeScreen(
             Text(
                 text = "Tu Archivador 3x3 está vacío",
                 style = MaterialTheme.typography.headlineMedium,
-                color = SnowTextPrimary,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center
             )
 
@@ -114,7 +114,7 @@ fun HomeScreen(
             Text(
                 text = "Presiona el botón de escaneo para digitalizar tu primera carta coleccionable con CameraX y ML Kit.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = SlateTextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }

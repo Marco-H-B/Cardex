@@ -181,4 +181,56 @@ class BinderViewModelTest {
         viewModel.dismiss3DViewer()
         assertNull(viewModel.uiState.value.selectedCardFor3D)
     }
+
+    @Test
+    fun `categoria generica con carta 439 debe ubicarse en pagina 48 bolsillo 6 con 49 paginas`() = runBlocking {
+        val card = createTestCard("c_439", "Carta Generica #439", catalogId = null)
+        fakeDao.insertCard(card)
+
+        viewModel = BinderViewModel(repository)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // En ALL: orden denso, 1 carta en página 0 bolsillo 0
+        assertEquals(1, viewModel.uiState.value.totalCards)
+        assertEquals(1, viewModel.uiState.value.totalPages)
+        assertEquals("Carta Generica #439", viewModel.uiState.value.currentSlots[0]?.name)
+
+        // Cambiar a categoría GENERIC: orden disperso por número
+        viewModel.setCategoryFilter(CardCategoryFilter.GENERIC)
+        assertEquals(1, viewModel.uiState.value.totalCards)
+        assertEquals(49, viewModel.uiState.value.totalPages)
+        // En la página inicial (0), los slots están vacíos esperando #001 a #009
+        assertTrue(viewModel.uiState.value.currentSlots.all { it == null })
+
+        // Navegar a la página 48 (índice 48)
+        for (i in 0 until 48) {
+            viewModel.nextPage()
+        }
+        assertEquals(48, viewModel.uiState.value.currentPageIndex)
+        // En la página 48, el bolsillo 6 contiene la carta #439 (438 % 9 = 6)
+        assertEquals("Carta Generica #439", viewModel.uiState.value.currentSlots[6]?.name)
+    }
+
+    @Test
+    fun `cartas duplicadas deben agruparse en un solo slot con el contador de copias`() = runBlocking {
+        val c1 = createTestCard("c1", "Charizard #004", catalogId = "cat_1", grade = "Dañado").copy(conditionFloat = 0.80)
+        val c2 = createTestCard("c2", "Charizard #004", catalogId = "cat_1", grade = "Pristine").copy(conditionFloat = 0.02)
+        val c3 = createTestCard("c3", "Charizard #004", catalogId = "cat_1", grade = "Near Mint").copy(conditionFloat = 0.10)
+        fakeDao.insertCards(listOf(c1, c2, c3))
+
+        viewModel = BinderViewModel(repository)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val state = viewModel.uiState.value
+        assertEquals(3, state.totalCards) // 3 cartas físicas en total
+        assertEquals(1, state.totalPages)
+
+        // Slot 0 debe contener las 3 copias agrupadas
+        val slot0 = state.currentSlots[0]
+        assertNotNull(slot0)
+        assertEquals(3, slot0!!.count)
+        assertEquals(3, slot0.copies.size)
+        // La carta principal visible arriba debe ser la de mejor condición (c2 con menor float: 0.02)
+        assertEquals("c2", slot0.primaryCard.id)
+    }
 }

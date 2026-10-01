@@ -1,6 +1,15 @@
 {
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-strip-types --test \"neon/functions/**/*.test.ts\""
+  },
   "dependencies": {
     "@neon/config": "^1.8.3",
-    "@neon/env": "^1.4.8"
+    "@neon/env": "^1.4.8",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.23.1",
+    "dotenv": "^18.0.4"
   }
 }

@@ -13,9 +13,14 @@ import com.cardex.app.core.theme.CardexTheme
 import com.cardex.app.data.image.WebpCardCompressor
 import com.cardex.app.data.local.database.CardDatabase
 import com.cardex.app.data.repository.CardRepositoryImpl
+import com.cardex.app.data.repository.MarketplaceRepositoryImpl
 import com.cardex.app.data.seed.PhysicalCardSeeder
 import com.cardex.app.presentation.binder.BinderScreen
 import com.cardex.app.presentation.binder.BinderViewModel
+import com.cardex.app.presentation.marketplace.MarketplaceScreen
+import com.cardex.app.presentation.marketplace.MarketplaceViewModel
+import com.cardex.app.presentation.p2p.P2PTradeScreen
+import com.cardex.app.presentation.p2p.P2PTradeViewModel
 import com.cardex.app.presentation.scanner.ScannerScreen
 import com.cardex.app.presentation.scanner.ScannerViewModel
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +37,7 @@ class MainActivity : ComponentActivity() {
         val db = CardDatabase.getInstance(applicationContext)
         val repository = CardRepositoryImpl(db.cardDao())
         val compressor = WebpCardCompressor(applicationContext)
+        val marketplaceRepository = MarketplaceRepositoryImpl()
 
         // Ingesta e inicialización de las 177 cartas físicas en segundo plano si la base de datos está vacía
         lifecycleScope.launch(Dispatchers.IO) {
@@ -50,17 +56,40 @@ class MainActivity : ComponentActivity() {
                 val binderViewModel = remember {
                     BinderViewModel(cardRepository = repository)
                 }
+                val marketplaceViewModel = remember {
+                    MarketplaceViewModel(marketplaceRepository = marketplaceRepository)
+                }
+                val p2pViewModel = remember {
+                    P2PTradeViewModel(cardRepository = repository)
+                }
 
-                if (currentScreen == "scanner") {
-                    ScannerScreen(
-                        viewModel = scannerViewModel,
-                        onNavigateBack = { currentScreen = "home" }
-                    )
-                } else {
-                    BinderScreen(
-                        viewModel = binderViewModel,
-                        onScanClick = { currentScreen = "scanner" }
-                    )
+                when (currentScreen) {
+                    "scanner" -> {
+                        ScannerScreen(
+                            viewModel = scannerViewModel,
+                            onNavigateBack = { currentScreen = "home" }
+                        )
+                    }
+                    "marketplace" -> {
+                        MarketplaceScreen(
+                            viewModel = marketplaceViewModel,
+                            onNavigateBack = { currentScreen = "home" }
+                        )
+                    }
+                    "p2p" -> {
+                        P2PTradeScreen(
+                            viewModel = p2pViewModel,
+                            onNavigateBack = { currentScreen = "home" }
+                        )
+                    }
+                    else -> {
+                        BinderScreen(
+                            viewModel = binderViewModel,
+                            onScanClick = { currentScreen = "scanner" },
+                            onMarketplaceClick = { currentScreen = "marketplace" },
+                            onP2PClick = { currentScreen = "p2p" }
+                        )
+                    }
                 }
             }
         }
