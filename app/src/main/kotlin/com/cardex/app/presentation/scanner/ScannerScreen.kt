@@ -10,18 +10,23 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Refresh
@@ -48,9 +53,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cardex.app.core.theme.CarbonBorder
+import com.cardex.app.core.theme.CardexGreen
 import com.cardex.app.core.theme.EpicCrimson
 import com.cardex.app.core.theme.GraphiteSurface
-import com.cardex.app.core.theme.MythicGold
 import com.cardex.app.core.theme.OledBlack
 import com.cardex.app.core.theme.SlateTextSecondary
 import com.cardex.app.core.theme.SnowTextPrimary
@@ -108,7 +113,9 @@ fun ScannerScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
@@ -127,7 +134,7 @@ fun ScannerScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = if (uiState.currentSide == CardSide.FRONT) "PASO 1: ANVERSO" else "PASO 2: REVERSO",
-                    color = MythicGold,
+                    color = CardexGreen,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Black
                 )
@@ -142,7 +149,7 @@ fun ScannerScreen(
                     .background(GraphiteSurface)
                     .border(
                         width = 2.dp,
-                        color = if (uiState.isBlurry) EpicCrimson else MythicGold,
+                        color = if (uiState.isBlurry) EpicCrimson else CardexGreen,
                         shape = RoundedCornerShape(16.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -153,7 +160,7 @@ fun ScannerScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         CircularProgressIndicator(
-                            color = MythicGold,
+                            color = CardexGreen,
                             modifier = Modifier.size(48.dp)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
@@ -172,7 +179,7 @@ fun ScannerScreen(
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Completado",
-                            tint = MythicGold,
+                            tint = CardexGreen,
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
@@ -256,65 +263,115 @@ fun ScannerScreen(
                 }
             }
 
-            // 4. Controles de Acción Inferiores
+            // 4. Controles de Acción Inferiores: Perfectamente Centrados y Simétricos
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Botón Reintentar / Deshacer (LIFO Pop)
-                OutlinedButton(
-                    onClick = { viewModel.retry() },
-                    enabled = uiState.capturedFront != null && !uiState.isProcessing,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = SlateTextSecondary
-                    ),
-                    shape = RoundedCornerShape(12.dp)
+                // Lado Izquierdo: Botón Reintentar / Deshacer (LIFO Pop)
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(imageVector = Icons.Default.Refresh, contentDescription = "Reintentar")
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Reintentar")
+                    OutlinedButton(
+                        onClick = { viewModel.retry() },
+                        enabled = uiState.capturedFront != null && !uiState.isProcessing,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = SlateTextSecondary,
+                            disabledContentColor = SlateTextSecondary.copy(alpha = 0.35f)
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Reintentar",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Reintentar",
+                            maxLines = 1,
+                            softWrap = false,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 12.sp
+                            )
+                        )
+                    }
                 }
 
-                // Botón Disparador Principal (ML Kit Scanner)
-                Button(
-                    onClick = {
-                        activity?.let { act ->
-                            scannerClient.getStartScanIntent(act)
-                                .addOnSuccessListener { intentSender ->
-                                    scannerLauncher.launch(
-                                        IntentSenderRequest.Builder(intentSender).build()
-                                    )
-                                }
-                        }
-                    },
-                    enabled = !uiState.isProcessing && !uiState.isScanComplete,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MythicGold,
-                        contentColor = OledBlack
-                    ),
-                    shape = CircleShape,
-                    modifier = Modifier.size(64.dp)
+                // Centro Matemático: Botón Disparador Principal de Cámara
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.CameraAlt,
-                        contentDescription = "Escanear Carta",
-                        modifier = Modifier.size(32.dp)
-                    )
+                    Button(
+                        onClick = {
+                            activity?.let { act ->
+                                scannerClient.getStartScanIntent(act)
+                                    .addOnSuccessListener { intentSender ->
+                                        scannerLauncher.launch(
+                                            IntentSenderRequest.Builder(intentSender).build()
+                                        )
+                                    }
+                            }
+                        },
+                        enabled = !uiState.isProcessing && !uiState.isScanComplete,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = CardexGreen,
+                            contentColor = OledBlack,
+                            disabledContainerColor = GraphiteSurface,
+                            disabledContentColor = SlateTextSecondary.copy(alpha = 0.4f)
+                        ),
+                        shape = CircleShape,
+                        modifier = Modifier.size(68.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = "Escanear Carta",
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
 
-                // Botón de Volver o Resetear
-                OutlinedButton(
-                    onClick = {
-                        if (uiState.isScanComplete) {
-                            viewModel.resetScan()
-                        } else {
-                            onNavigateBack()
-                        }
-                    },
-                    shape = RoundedCornerShape(12.dp)
+                // Lado Derecho: Botón Salir o Nueva Captura
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(if (uiState.isScanComplete) "Nueva" else "Salir")
+                    OutlinedButton(
+                        onClick = {
+                            if (uiState.isScanComplete) {
+                                viewModel.resetScan()
+                            } else {
+                                onNavigateBack()
+                            }
+                        },
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 10.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = SlateTextSecondary
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (uiState.isScanComplete) Icons.Default.Add else Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = if (uiState.isScanComplete) "Nueva" else "Salir",
+                            maxLines = 1,
+                            softWrap = false,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 12.sp
+                            )
+                        )
+                    }
                 }
             }
         }
