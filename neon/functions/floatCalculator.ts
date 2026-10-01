@@ -1,15 +1,15 @@
 // ============================================================================
-// 🃏 Motor Algorítmico del Float Inmutable (Edge Function - Supabase / Deno)
-// Arquitectura: Clean Domain + Criptografía HMAC-SHA256
+// 🃏 Motor Algorítmico del Float Inmutable (Neon Functions - Node.js 24)
+// Arquitectura: Clean Domain + Criptografía HMAC-SHA256 (Web Crypto API)
 // ============================================================================
 
 import type {
     FloatCalculationRequest,
     FloatCalculationResult,
     OpticalInspectionMetrics,
-    WearTier
-} from '../_shared/types.ts';
-import { evaluateHolyGrail } from './holyGrails.ts';
+    WearTier,
+} from "./types.ts";
+import { evaluateHolyGrail } from "./holyGrails.ts";
 
 /**
  * Invariantes Matemáticas del Float:
@@ -28,15 +28,15 @@ import { evaluateHolyGrail } from './holyGrails.ts';
  */
 export function mapFloatToWearTier(floatValue: number): WearTier {
     if (floatValue <= 0.050000000) {
-        return 'PRISTINE';
+        return "PRISTINE";
     } else if (floatValue <= 0.150000000) {
-        return 'NEAR_MINT';
+        return "NEAR_MINT";
     } else if (floatValue <= 0.350000000) {
-        return 'LIGHT_PLAY';
+        return "LIGHT_PLAY";
     } else if (floatValue <= 0.700000000) {
-        return 'MODERATE_PLAY';
+        return "MODERATE_PLAY";
     } else {
-        return 'DAMAGED';
+        return "DAMAGED";
     }
 }
 
@@ -46,36 +46,37 @@ export function mapFloatToWearTier(floatValue: number): WearTier {
  */
 export function mapSlabGradeToFloat(gradeStr?: string): { floatValue: number; tier: WearTier } {
     if (!gradeStr) {
-        return { floatValue: 0.850000000, tier: 'DAMAGED' };
+        return { floatValue: 0.850000000, tier: "DAMAGED" };
     }
 
     const match = gradeStr.match(/\d+(\.\d+)?/);
     const numericGrade = match ? parseFloat(match[0]) : 0.0;
 
     if (numericGrade >= 10.0) {
-        return { floatValue: 0.005000000, tier: 'PRISTINE' };
+        return { floatValue: 0.005000000, tier: "PRISTINE" };
     } else if (numericGrade >= 9.0) {
         // Mapeo proporcional entre 9.0 y 9.9 a float [0.060, 0.095]
-        const factor = (10.0 - numericGrade); // 0.1 a 1.0
+        const factor = 10.0 - numericGrade; // 0.1 a 1.0
         const floatVal = 0.050000000 + factor * 0.050000000;
-        return { floatValue: Math.round(floatVal * 1e9) / 1e9, tier: 'NEAR_MINT' };
+        return { floatValue: Math.round(floatVal * 1e9) / 1e9, tier: "NEAR_MINT" };
     } else if (numericGrade >= 7.0) {
         // Mapeo entre 7.0 y 8.9 a float [0.180, 0.280]
         const factor = (9.0 - numericGrade) / 2.0;
         const floatVal = 0.150000000 + factor * 0.150000000;
-        return { floatValue: Math.round(floatVal * 1e9) / 1e9, tier: 'LIGHT_PLAY' };
+        return { floatValue: Math.round(floatVal * 1e9) / 1e9, tier: "LIGHT_PLAY" };
     } else if (numericGrade >= 5.0) {
         // Mapeo entre 5.0 y 6.9 a float [0.380, 0.650]
         const factor = (7.0 - numericGrade) / 2.0;
         const floatVal = 0.350000000 + factor * 0.300000000;
-        return { floatValue: Math.round(floatVal * 1e9) / 1e9, tier: 'MODERATE_PLAY' };
+        return { floatValue: Math.round(floatVal * 1e9) / 1e9, tier: "MODERATE_PLAY" };
     } else {
-        return { floatValue: 0.850000000, tier: 'DAMAGED' };
+        return { floatValue: 0.850000000, tier: "DAMAGED" };
     }
 }
 
 /**
  * Genera la firma criptográfica HMAC-SHA256 inmutable de la tasación utilizando Web Crypto API.
+ * Compatible nativamente con Node.js 24.
  */
 export async function computeHmacSignature(
     cardId: string,
@@ -83,7 +84,7 @@ export async function computeHmacSignature(
     floatFormatted: string,
     wearTier: WearTier,
     timestamp: string,
-    secretKey: string
+    secretKey: string,
 ): Promise<string> {
     const canonicalMessage = `${cardId}:${userId}:${floatFormatted}:${wearTier}:${timestamp}`;
     const encoder = new TextEncoder();
@@ -91,17 +92,17 @@ export async function computeHmacSignature(
     const messageData = encoder.encode(canonicalMessage);
 
     const cryptoKey = await crypto.subtle.importKey(
-        'raw',
+        "raw",
         keyData,
-        { name: 'HMAC', hash: 'SHA-256' },
+        { name: "HMAC", hash: "SHA-256" },
         false,
-        ['sign']
+        ["sign"],
     );
 
-    const signatureBuffer = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+    const signatureBuffer = await crypto.subtle.sign("HMAC", cryptoKey, messageData);
     return Array.from(new Uint8Array(signatureBuffer))
-        .map((b) => b.toString(16).padStart(2, '0'))
-        .join('');
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
 }
 
 /**
@@ -110,10 +111,10 @@ export async function computeHmacSignature(
  */
 export async function calculateFloat(
     request: FloatCalculationRequest,
-    secretKey: string
+    secretKey: string,
 ): Promise<FloatCalculationResult> {
     let floatValue = 0.0;
-    let wearTier: WearTier = 'PRISTINE';
+    let wearTier: WearTier = "PRISTINE";
     let isSlabBypassApplied = false;
 
     // 1. Evaluar si aplica Slab Bypass por detección de losa graduada
@@ -128,7 +129,7 @@ export async function calculateFloat(
             centeringScore: 1.0,
             cornerWearScore: 0.0,
             edgeWearScore: 0.0,
-            surfaceScratchScore: 0.0
+            surfaceScratchScore: 0.0,
         };
 
         const centeringPenalty = Math.max(0.0, Math.min(1.0, 1.0 - metrics.centeringScore));
@@ -138,12 +139,11 @@ export async function calculateFloat(
 
         // Ponderación canónica:
         // 0.15 Centrado + 0.35 Esquinas + 0.30 Bordes + 0.20 Superficie
-        const weightedWear = (
+        const weightedWear =
             centeringPenalty * 0.15 +
             cornerPenalty * 0.35 +
             edgePenalty * 0.30 +
-            surfacePenalty * 0.20
-        );
+            surfacePenalty * 0.20;
 
         // Acotar estrictamente entre 0.000000000 y 1.000000000
         floatValue = Math.max(0.000000000, Math.min(1.000000000, weightedWear));
@@ -167,7 +167,7 @@ export async function calculateFloat(
         floatFormatted,
         wearTier,
         calculatedAt,
-        secretKey
+        secretKey,
     );
 
     return {
@@ -179,6 +179,6 @@ export async function calculateFloat(
         isSlabBypassApplied,
         holyGrailValuation,
         hmacSignature,
-        calculatedAt
+        calculatedAt,
     };
 }

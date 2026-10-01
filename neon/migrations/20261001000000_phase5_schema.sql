@@ -1,6 +1,6 @@
 -- ============================================================================
--- 🃏 CARDEX BACKEND SCHEMA - FASE 5 (Supabase PostgreSQL 15+)
--- Arquitectura ACID con Bloqueo Pesimista, RLS y Cuotas Diarias
+-- 🃏 CARDEX BACKEND SCHEMA - NEON LAKEBASE POSTGRES
+-- Arquitectura ACID con Bloqueo Pesimista, Índices y Funciones Transaccionales
 -- ============================================================================
 
 -- Habilitar extensiones criptográficas y de UUIDs
@@ -11,8 +11,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 -- 1. TABLA DE PERFILES Y MONETIZACIÓN (Lemon Squeezy SaaS)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    email TEXT NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL UNIQUE,
     full_name TEXT,
     subscription_tier TEXT NOT NULL DEFAULT 'FREE' CHECK (subscription_tier IN ('FREE', 'PRO')),
     lemon_squeezy_customer_id TEXT,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS public.cards_catalog (
 -- 3. TABLA DE INSTANCIAS DE CARTAS (Inventario Físico / Float System)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.card_instances (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     card_id VARCHAR(64) NOT NULL REFERENCES public.cards_catalog(id),
     float_value NUMERIC(10, 9) CHECK (float_value IS NULL OR (float_value >= 0.000000000 AND float_value <= 1.000000000)),
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS public.card_instances (
     thumbnail_url TEXT NOT NULL,
     phash_front VARCHAR(64),
     phash_back VARCHAR(64),
-    hmac_signature VARCHAR(64) NOT NULL, -- Firma criptográfica emitida por la Edge Function
+    hmac_signature VARCHAR(64) NOT NULL, -- Firma criptográfica emitida por Neon Function
     verification_status VARCHAR(32) NOT NULL DEFAULT 'VERIFIED_LIVE'
         CHECK (verification_status IN ('VERIFIED_LIVE', 'GALLERY_PENDING', 'REJECTED')),
     custom_stats JSONB DEFAULT '{}'::jsonb, -- ATK, DEF, Tipo elemental para genéricas
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS public.card_instances (
 -- 4. TABLA DEL MERCADO (Listings con Bloqueo Concurrente)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.market_listings (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     card_instance_id UUID NOT NULL UNIQUE REFERENCES public.card_instances(id) ON DELETE CASCADE,
     seller_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     price_pen NUMERIC(10, 2) NOT NULL CHECK (price_pen > 0),
@@ -108,62 +108,15 @@ CREATE INDEX IF NOT EXISTS idx_market_listings_status ON public.market_listings(
 CREATE INDEX IF NOT EXISTS idx_price_history_card ON public.price_history(card_id, created_at DESC);
 
 -- ============================================================================
--- 7. POLÍTICAS DE ROW LEVEL SECURITY (RLS)
--- ============================================================================
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.cards_catalog ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.card_instances ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.market_listings ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.price_history ENABLE ROW LEVEL SECURITY;
-
--- 7.1 Catálogo Maestro y Precios (Lectura pública)
-CREATE POLICY "Lectura pública de catálogo maestro" ON public.cards_catalog
-    FOR SELECT USING (true);
-
-CREATE POLICY "Lectura pública de historial de precios" ON public.price_history
-    FOR SELECT USING (true);
-
--- 7.2 Profiles
-CREATE POLICY "Lectura pública de perfiles" ON public.profiles
-    FOR SELECT USING (true);
-
-CREATE POLICY "Solo el dueño puede editar su perfil" ON public.profiles
-    FOR UPDATE USING (auth.uid() = id);
-
--- 7.3 Card Instances
-CREATE POLICY "Lectura pública de instancias de cartas" ON public.card_instances
-    FOR SELECT USING (true);
-
-CREATE POLICY "Solo el dueño puede registrar o borrar sus cartas" ON public.card_instances
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Solo el dueño puede actualizar su carta" ON public.card_instances
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Solo el dueño puede eliminar su carta" ON public.card_instances
-    FOR DELETE USING (auth.uid() = user_id);
-
--- 7.4 Market Listings
-CREATE POLICY "Lectura pública de listings en venta o reservados" ON public.market_listings
-    FOR SELECT USING (status IN ('AVAILABLE', 'RESERVED'));
-
-CREATE POLICY "Solo el vendedor puede crear un listing" ON public.market_listings
-    FOR INSERT WITH CHECK (auth.uid() = seller_id);
-
-CREATE POLICY "Solo el vendedor puede actualizar o cancelar su listing" ON public.market_listings
-    FOR UPDATE USING (auth.uid() = seller_id);
-
--- ============================================================================
--- 8. FUNCIONES RPC DE BASE DE DATOS
+-- 7. FUNCIONES RPC DE BASE DE DATOS
 -- ============================================================================
 
--- 8.1 Control Transaccional de Cuotas Diarias (FREE: 5, PRO: 10)
+-- 7.1 Control Transaccional de Cuotas Diarias (FREE: 5, PRO: 10)
 CREATE OR REPLACE FUNCTION public.check_and_consume_daily_scan(
     p_user_id UUID
 )
 RETURNS JSONB
 LANGUAGE plpgsql
-SECURITY DEFINER
 AS $$
 DECLARE
     v_profile RECORD;
@@ -229,14 +182,13 @@ BEGIN
 END;
 $$;
 
--- 8.2 Función de Bloqueo Pesimista para el Marketplace (CC232 / CC341)
+-- 7.2 Función de Bloqueo Pesimista para el Marketplace (CC232 / CC341)
 CREATE OR REPLACE FUNCTION public.reserve_card_for_purchase(
     p_listing_id UUID,
     p_buyer_id UUID
 )
 RETURNS JSONB
 LANGUAGE plpgsql
-SECURITY DEFINER
 AS $$
 DECLARE
     v_listing RECORD;
@@ -277,26 +229,3 @@ BEGIN
     );
 END;
 $$;
-
--- ============================================================================
--- 9. CONFIGURACIÓN DE STORAGE BUCKET (card-images)
--- ============================================================================
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-    'card-images',
-    'card-images',
-    true,
-    52428800, -- 50 MB
-    ARRAY['image/webp', 'image/jpeg', 'image/png']
-)
-ON CONFLICT (id) DO NOTHING;
-
--- Políticas de Storage
-CREATE POLICY "Lectura pública de fotos de cartas" ON storage.objects
-    FOR SELECT USING (bucket_id = 'card-images');
-
-CREATE POLICY "Solo usuarios autenticados suben fotos" ON storage.objects
-    FOR INSERT WITH CHECK (
-        bucket_id = 'card-images' AND
-        auth.role() = 'authenticated'
-    );

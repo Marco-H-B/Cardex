@@ -1,5 +1,5 @@
 // ============================================================================
-// Tipos TypeScript para el Backend y Edge Functions de Cardex
+// Tipos TypeScript para el Backend y Neon Functions de Cardex
 // ============================================================================
 
 export type WearTier = "PRISTINE" | "NEAR_MINT" | "LIGHT_PLAY" | "MODERATE_PLAY" | "DAMAGED";

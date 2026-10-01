@@ -6,7 +6,13 @@ export default defineConfig({
       "card-images": { access: "public_read" },
     },
     functions: {
-      api: { name: "api", source: "./hello.ts" },
+      api: {
+        name: "api",
+        source: "./neon/functions/index.ts",
+        env: {
+          LEMONSQUEEZY_WEBHOOK_SECRET: process.env.LEMONSQUEEZY_WEBHOOK_SECRET!,
+        },
+      },
     },
   },
 });

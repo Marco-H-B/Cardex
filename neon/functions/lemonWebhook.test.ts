@@ -1,14 +1,15 @@
 // ============================================================================
-// Pruebas Unitarias para el Webhook de Lemon Squeezy
+// Pruebas Unitarias TDD para el Webhook de Lemon Squeezy (Neon Functions)
+// Ejecutable con: node --experimental-strip-types --test
 // ============================================================================
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { verifyLemonSignature } from "./index.ts";
+import { verifyLemonSignature } from "./lemonWebhook.ts";
 
 const SECRET = "test_webhook_secret_key_cardex_2026";
 
-// Función auxiliar para firmar con HMAC-SHA256
+// Función auxiliar para firmar con HMAC-SHA256 (Web Crypto API nativa en Node.js 24)
 async function createTestSignature(payload: string, secret: string): Promise<string> {
     const encoder = new TextEncoder();
     const keyData = encoder.encode(secret);
@@ -41,7 +42,7 @@ test("2. verifyLemonSignature rechaza payloads alterados o firmas apócrifas", a
 
     const validSignature = await createTestSignature(payload, SECRET);
 
-    // Payload alterado
+    // Payload alterado (intento de inyección/suplantación de usuario)
     const tamperedPayload = JSON.stringify({
         meta: { event_name: "subscription_created", custom_data: { user_id: "attacker_666" } },
     });

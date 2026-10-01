@@ -2,7 +2,7 @@
 // Catálogo de Cartas 'Santo Grial' (Holy Grails) y Tasación Histórica
 // ============================================================================
 
-import type { HolyGrailValuation, WearTier } from "../_shared/types.ts";
+import type { HolyGrailValuation, WearTier } from "./types.ts";
 
 export interface HolyGrailMetadata {
     cardId: string;
