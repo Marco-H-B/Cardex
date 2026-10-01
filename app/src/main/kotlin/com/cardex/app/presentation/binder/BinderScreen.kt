@@ -83,6 +83,7 @@ import com.cardex.app.core.theme.OledBlack
 import com.cardex.app.core.theme.RarePurple
 import com.cardex.app.core.theme.SlateTextSecondary
 import com.cardex.app.core.theme.SnowTextPrimary
+import com.cardex.app.core.theme.getConditionGradeColor
 import com.cardex.app.data.local.entity.CardEntity
 import com.cardex.app.presentation.viewer3d.Card3DViewer
 import java.io.File
@@ -278,7 +279,7 @@ fun BinderScreen(
                                                     Text(
                                                         text = card.conditionGrade ?: "Sin calificar",
                                                         style = MaterialTheme.typography.labelSmall.copy(
-                                                            color = SlateTextSecondary,
+                                                            color = card.getConditionGradeColor(),
                                                             fontSize = 11.sp
                                                         )
                                                     )
@@ -525,14 +526,7 @@ private fun BinderPocketSlot(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val gradeColor = when (card?.conditionGrade?.lowercase()) {
-        "mítico", "mitico", "gem mint", "mint" -> MythicGold
-        "épico", "epico", "near mint" -> EpicCrimson
-        "raro", "excellent" -> RarePurple
-        "común", "comun", "light played" -> CommonBlue
-        "dañado", "danado", "poor" -> DamagedGlacier
-        else -> CarbonBorder
-    }
+    val gradeColor = card.getConditionGradeColor(fallback = CarbonBorder)
 
     Box(
         modifier = modifier

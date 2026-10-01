@@ -2,6 +2,9 @@ package com.cardex.app.presentation.viewer3d
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -44,7 +47,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -58,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import com.cardex.app.presentation.common.CardImage
 import com.cardex.app.core.theme.CarbonBorder
 import com.cardex.app.core.theme.CardexGreen
+import com.cardex.app.core.theme.getConditionGradeColor
 import com.cardex.app.core.theme.CommonBlue
 import com.cardex.app.core.theme.DamagedGlacier
 import com.cardex.app.core.theme.EpicCrimson
@@ -100,29 +106,67 @@ fun Card3DViewer(
     // La cara frontal es visible de 0° a 90° y de 270° a 360°
     val isFrontVisible = normalizedY in 0f..90f || normalizedY in 270f..360f
 
-    // Color temático del Grado de desgaste (Float Tier)
-    val gradeColor = when (card.conditionGrade?.lowercase()) {
-        "mítico", "mitico", "gem mint", "mint" -> MythicGold
-        "épico", "epico", "near mint" -> EpicCrimson
-        "raro", "excellent" -> RarePurple
-        "común", "comun", "light played" -> CommonBlue
-        "dañado", "danado", "poor" -> DamagedGlacier
-        else -> SlateTextSecondary
-    }
+    // Color temático oficial del Grado de desgaste (Float Tier)
+    val gradeColor = card.getConditionGradeColor()
+
+    // Animación fluida del color de desgaste para una entrada y transición suave
+    val animatedGradeColor by animateColorAsState(
+        targetValue = gradeColor,
+        animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing),
+        label = "GradeColorAnimation"
+    )
 
     BackHandler { onDismiss() }
 
-    // Fondo degradado radial centrado en #1A1A1A hacia #000000 OLED
+    // Fondo dinámico adaptado al color y grado de desgaste de la carta
+    // Implementa un degradado fino, suave y con difusión exponencial hacia el negro puro OLED (#000000)
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(
-                Brush.radialGradient(
-                    colors = listOf(Color(0xFF1C1C1E), OledBlack),
-                    radius = 1200f
+            .background(OledBlack)
+            .drawBehind {
+                // Cálculo del centro de resplandor óptico detrás de la carta
+                // Se incorpora un desplazamiento por paralaje sutil (tilt) al rotar la carta en 3D
+                val parallaxX = (rotationY / 45f).coerceIn(-1.5f, 1.5f) * 20.dp.toPx()
+                val parallaxY = (rotationX / 45f).coerceIn(-1.5f, 1.5f) * 15.dp.toPx()
+
+                val lightCenterX = size.width * 0.5f + parallaxX
+                val lightCenterY = size.height * 0.40f + parallaxY
+
+                // Radio dinámico calibrado según el ancho de pantalla para una apertura suave y generosa
+                val lightRadius = size.width * 1.45f
+
+                // Resplandor radial de alta precisión con curva gaussiana (evita bandas cromáticas duras)
+                drawRect(
+                    brush = Brush.radialGradient(
+                        colorStops = arrayOf(
+                            0.00f to animatedGradeColor.copy(alpha = 0.52f),
+                            0.25f to animatedGradeColor.copy(alpha = 0.38f),
+                            0.50f to animatedGradeColor.copy(alpha = 0.20f),
+                            0.75f to animatedGradeColor.copy(alpha = 0.06f),
+                            1.00f to Color.Transparent
+                        ),
+                        center = Offset(lightCenterX, lightCenterY),
+                        radius = lightRadius
+                    )
                 )
-            )
-    ) {
+
+                // Velo vertical de atenuación: mantiene pureza OLED en la zona inferior de la ficha técnica
+                drawRect(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            animatedGradeColor.copy(alpha = 0.08f),
+                            Color.Transparent,
+                            OledBlack.copy(alpha = 0.65f),
+                            OledBlack
+                        ),
+                        startY = 0f,
+                        endY = size.height
+                    )
+                )
+            }
+    )
+ {
         // Barra Superior: Safe Area con statusBarsPadding() para evitar notch / Dynamic Island
         Row(
             modifier = Modifier
@@ -215,6 +259,29 @@ fun Card3DViewer(
                     )
             )
 
+            // Resplandor ambiental suave inmediatamente detrás de la silueta física de la carta
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(1.08f)
+                    .aspectRatio(63f / 88f)
+                    .graphicsLayer {
+                        this.rotationY = rotationY * 0.20f
+                        this.rotationX = rotationX * 0.20f
+                        this.cameraDistance = 16f * density.density
+                    }
+                    .background(
+                        Brush.radialGradient(
+                            colorStops = arrayOf(
+                                0.0f to animatedGradeColor.copy(alpha = 0.40f),
+                                0.45f to animatedGradeColor.copy(alpha = 0.20f),
+                                0.75f to animatedGradeColor.copy(alpha = 0.05f),
+                                1.0f to Color.Transparent
+                            )
+                        ),
+                        shape = RoundedCornerShape(36.dp)
+                    )
+            )
+
             // Escenario de Carta 3D acelerado por hardware
             Box(
                 modifier = Modifier
@@ -231,7 +298,7 @@ fun Card3DViewer(
                     .background(GraphiteSurface)
                     .border(
                         width = 1.5.dp,
-                        color = gradeColor.copy(alpha = 0.6f),
+                        color = animatedGradeColor.copy(alpha = 0.65f),
                         shape = RoundedCornerShape(12.dp)
                     )
             ) {
@@ -259,7 +326,7 @@ fun Card3DViewer(
                     colors = listOf(
                         Color.Transparent,
                         Color.White.copy(alpha = 0.18f),
-                        gradeColor.copy(alpha = 0.25f),
+                        animatedGradeColor.copy(alpha = 0.25f),
                         Color.Cyan.copy(alpha = 0.15f),
                         Color.Transparent
                     ),
@@ -327,15 +394,15 @@ fun Card3DViewer(
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(gradeColor.copy(alpha = 0.18f))
-                                .border(1.dp, gradeColor, RoundedCornerShape(8.dp))
+                                .background(animatedGradeColor.copy(alpha = 0.18f))
+                                .border(1.dp, animatedGradeColor, RoundedCornerShape(8.dp))
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
                         ) {
                             Text(
                                 text = grade.uppercase(),
                                 style = MaterialTheme.typography.labelSmall.copy(
                                     fontWeight = FontWeight.Bold,
-                                    color = gradeColor,
+                                    color = animatedGradeColor,
                                     letterSpacing = 0.5.sp
                                 )
                             )
@@ -370,7 +437,7 @@ fun Card3DViewer(
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontFamily = FontFamily.Monospace,
                                 fontWeight = FontWeight.Bold,
-                                color = gradeColor,
+                                color = animatedGradeColor,
                                 fontSize = 14.sp
                             )
                         )
