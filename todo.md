@@ -29,6 +29,7 @@
   - [x] Archivador $3 \times 3$ con Jetpack Compose y transiciones de hoja a 120 FPS.
   - [x] Barra de búsqueda en vivo conectada al Árbol Trie en tiempo $O(L)$.
   - [x] Visor 3D interactivo con `graphicsLayer` (rotación libre X/Y y umbral Anverso $\leftrightarrow$ Reverso a $90^\circ$).
+  - [x] Fondo dinámico adaptativo al Grado de desgaste (Float Tier) con degradado gaussiano multiparada, resplandor posterior e iluminación por paralaje táctil en tiempo real.
 
 - [x] **Fase 5: Backend Supabase, Edge Functions y Cuotas Lemon Squeezy**
   - [x] Migración SQL completa (`20261001000000_phase5_schema.sql`): `profiles`, `cards_catalog`, `card_instances`, `market_listings`, `price_history`.
@@ -41,6 +42,7 @@
     - [x] Firma criptográfica HMAC-SHA256 inmutable.
   - [x] Edge Function `lemonsqueezy-webhook` para activación automática de suscripciones PRO.
   - [x] Ingesta masiva de las 177 cartas físicas (120 Oficiales + 57 Genéricas) en `seed.sql` y `PhysicalCardSeeder.kt`.
+  - [x] Aprovisionamiento y despliegue en Neon Cloud (PostgreSQL 16 serverless, Object Storage bucket `card-images` y Neon Functions).
 
 ---
 
