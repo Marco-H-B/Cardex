@@ -1,4 +1,4 @@
-﻿package com.cardex.app.presentation
+package com.cardex.app.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cardex.app.core.theme.CarbonBorder
 import com.cardex.app.core.theme.GraphiteSurface
-import com.cardex.app.core.theme.MythicGold
+import com.cardex.app.core.theme.CardexGreen
 import com.cardex.app.core.theme.OledBlack
 import com.cardex.app.core.theme.SlateTextSecondary
 import com.cardex.app.core.theme.SnowTextPrimary
@@ -51,20 +51,20 @@ fun HomeScreen(
                         text = "CARDEX",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MythicGold
+                            color = CardexGreen
                         )
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = OledBlack,
-                    titleContentColor = MythicGold
+                    titleContentColor = CardexGreen
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onScanClick,
-                containerColor = MythicGold,
+                containerColor = CardexGreen,
                 contentColor = OledBlack,
                 shape = CircleShape,
                 modifier = Modifier.padding(16.dp)
@@ -95,7 +95,7 @@ fun HomeScreen(
                 Icon(
                     imageVector = Icons.Default.Style,
                     contentDescription = null,
-                    tint = MythicGold,
+                    tint = CardexGreen,
                     modifier = Modifier.size(48.dp)
                 )
             }
