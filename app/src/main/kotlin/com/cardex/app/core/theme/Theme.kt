@@ -1,4 +1,4 @@
-﻿package com.cardex.app.core.theme
+package com.cardex.app.core.theme
 
 import android.app.Activity
 import androidx.compose.material3.MaterialTheme
@@ -9,9 +9,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = MythicGold,
+    primary = CardexGreen,
     onPrimary = OledBlack,
-    primaryContainer = GraphiteSurface,
+    primaryContainer = TitaniumSurface,
     onPrimaryContainer = SnowTextPrimary,
     secondary = SlateTextSecondary,
     onSecondary = SnowTextPrimary,
