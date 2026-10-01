@@ -76,6 +76,7 @@ import com.cardex.app.core.theme.CarbonBorder
 import com.cardex.app.core.theme.CommonBlue
 import com.cardex.app.core.theme.DamagedGlacier
 import com.cardex.app.core.theme.EpicCrimson
+import com.cardex.app.core.theme.CardexGreen
 import com.cardex.app.core.theme.GraphiteSurface
 import com.cardex.app.core.theme.MythicGold
 import com.cardex.app.core.theme.OledBlack
@@ -145,7 +146,7 @@ fun BinderScreen(
                                     style = MaterialTheme.typography.headlineMedium.copy(
                                         fontWeight = FontWeight.Black,
                                         letterSpacing = 1.5.sp,
-                                        color = MythicGold
+                                        color = CardexGreen
                                     )
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
@@ -165,13 +166,13 @@ fun BinderScreen(
                                 Icon(
                                     imageVector = if (isSearchActive) Icons.Default.Close else Icons.Default.Search,
                                     contentDescription = "Buscar cartas",
-                                    tint = if (isSearchActive) MythicGold else SnowTextPrimary
+                                    tint = if (isSearchActive) CardexGreen else SnowTextPrimary
                                 )
                             }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = OledBlack,
-                            titleContentColor = MythicGold
+                            titleContentColor = CardexGreen
                         )
                     )
 
@@ -205,7 +206,7 @@ fun BinderScreen(
                                             Icon(
                                                 imageVector = Icons.Default.Search,
                                                 contentDescription = null,
-                                                tint = MythicGold
+                                                tint = CardexGreen
                                             )
                                         },
                                         trailingIcon = {
@@ -285,7 +286,7 @@ fun BinderScreen(
                                                 Text(
                                                     text = "Ver 3D",
                                                     style = MaterialTheme.typography.labelSmall.copy(
-                                                        color = MythicGold,
+                                                        color = CardexGreen,
                                                         fontWeight = FontWeight.Bold
                                                     )
                                                 )
@@ -309,7 +310,7 @@ fun BinderScreen(
                             onClick = { viewModel.setCategoryFilter(CardCategoryFilter.ALL) },
                             label = { Text("Todas (${uiState.totalCards})") },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MythicGold,
+                                selectedContainerColor = CardexGreen,
                                 selectedLabelColor = OledBlack,
                                 containerColor = GraphiteSurface,
                                 labelColor = SnowTextPrimary
@@ -320,7 +321,7 @@ fun BinderScreen(
                             onClick = { viewModel.setCategoryFilter(CardCategoryFilter.OFFICIAL_TCG) },
                             label = { Text("Oficiales TCG") },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MythicGold,
+                                selectedContainerColor = CardexGreen,
                                 selectedLabelColor = OledBlack,
                                 containerColor = GraphiteSurface,
                                 labelColor = SnowTextPrimary
@@ -331,7 +332,7 @@ fun BinderScreen(
                             onClick = { viewModel.setCategoryFilter(CardCategoryFilter.GENERIC) },
                             label = { Text("Genéricas") },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MythicGold,
+                                selectedContainerColor = CardexGreen,
                                 selectedLabelColor = OledBlack,
                                 containerColor = GraphiteSurface,
                                 labelColor = SnowTextPrimary
@@ -361,7 +362,7 @@ fun BinderScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Página anterior",
-                                tint = if (uiState.currentPageIndex > 0) MythicGold else GraphiteSurface
+                                tint = if (uiState.currentPageIndex > 0) CardexGreen else GraphiteSurface
                             )
                         }
 
@@ -393,7 +394,7 @@ fun BinderScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                 contentDescription = "Página siguiente",
-                                tint = if (uiState.currentPageIndex < uiState.totalPages - 1) MythicGold else GraphiteSurface
+                                tint = if (uiState.currentPageIndex < uiState.totalPages - 1) CardexGreen else GraphiteSurface
                             )
                         }
                     }
@@ -402,7 +403,7 @@ fun BinderScreen(
             floatingActionButton = {
                 FloatingActionButton(
                     onClick = onScanClick,
-                    containerColor = MythicGold,
+                    containerColor = CardexGreen,
                     contentColor = OledBlack,
                     shape = CircleShape,
                     modifier = Modifier.padding(16.dp)
@@ -422,7 +423,7 @@ fun BinderScreen(
                         .padding(innerPadding),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = MythicGold)
+                    CircularProgressIndicator(color = CardexGreen)
                 }
             } else if (uiState.totalCards == 0) {
                 // Estado vacío: Sin cartas escaneadas
@@ -444,7 +445,7 @@ fun BinderScreen(
                         Icon(
                             imageVector = Icons.Default.Style,
                             contentDescription = null,
-                            tint = MythicGold,
+                            tint = CardexGreen,
                             modifier = Modifier.size(48.dp)
                         )
                     }
@@ -525,7 +526,7 @@ private fun BinderPocketSlot(
     modifier: Modifier = Modifier
 ) {
     val gradeColor = when (card?.conditionGrade?.lowercase()) {
-        "mítico", "mitico", "gem mint" -> MythicGold
+        "mítico", "mitico", "gem mint", "mint" -> MythicGold
         "épico", "epico", "near mint" -> EpicCrimson
         "raro", "excellent" -> RarePurple
         "común", "comun", "light played" -> CommonBlue
