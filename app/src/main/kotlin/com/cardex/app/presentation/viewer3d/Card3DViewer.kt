@@ -76,7 +76,7 @@ import kotlin.math.abs
  *
  * Características Técnicas:
  * - Rotación libre en ejes X e Y mediante gestos táctiles directos.
- * - Conmutación automática de textura entre Anverso (Cara A) y Reverso (Cara B)
+ * - Conmutación automática de textura entre Anverso y Reverso
  *   exactamente al cruzar el umbral angular de los 90 grados.
  * - Simulación de perspectiva física con 'cameraDistance' de alta precisión.
  * - Brillo holográfico cromático reactivo al ángulo de giro.
@@ -153,7 +153,7 @@ fun Card3DViewer(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = if (isFrontVisible) "Anverso (Cara A)" else "Reverso (Cara B)",
+                    text = if (isFrontVisible) "Anverso" else "Reverso",
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
